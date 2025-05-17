@@ -1,12 +1,12 @@
-
 "use client";
 
-import * as React from 'react';
+import React from 'react'; // Changed from type import
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CalendarIcon, PlusCircle, Edit3 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { format, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -35,11 +35,11 @@ import type { Material, MaterialFormValues } from '@/types/inventory';
 
 const materialSchema = z.object({
   id: z.string().optional(),
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be 100 characters or less'),
-  description: z.string().max(500, 'Description must be 500 characters or less').optional(),
-  quantity: z.coerce.number().min(0, 'Quantity cannot be negative').int('Quantity must be a whole number'),
-  purchaseDate: z.date({ required_error: 'Purchase date is required.' }),
-  lowStockThreshold: z.coerce.number().min(0, 'Threshold cannot be negative').int('Threshold must be a whole number'),
+  name: z.string().min(1, 'El nombre es obligatorio').max(100, 'El nombre debe tener 100 caracteres o menos'),
+  description: z.string().max(500, 'La descripción debe tener 500 caracteres o menos').optional(),
+  quantity: z.coerce.number().min(0, 'La cantidad no puede ser negativa').int('La cantidad debe ser un número entero'),
+  purchaseDate: z.date({ required_error: 'La fecha de compra es obligatoria.' }),
+  lowStockThreshold: z.coerce.number().min(0, 'El umbral no puede ser negativo').int('El umbral debe ser un número entero'),
 });
 
 interface MaterialDialogProps {
@@ -93,10 +93,10 @@ export function MaterialDialog({ material, onSave, children }: MaterialDialogPro
         <DialogHeader>
           <DialogTitle className="flex items-center">
             {material ? <Edit3 className="mr-2 h-5 w-5" /> : <PlusCircle className="mr-2 h-5 w-5" />}
-            {material ? 'Edit Material' : 'Add New Material'}
+            {material ? 'Editar Material' : 'Agregar Nuevo Material'}
           </DialogTitle>
           <DialogDescription>
-            {material ? 'Update the details of the material.' : 'Fill in the details for the new material.'}
+            {material ? 'Actualiza los detalles del material.' : 'Completa los detalles del nuevo material.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -106,9 +106,9 @@ export function MaterialDialog({ material, onSave, children }: MaterialDialogPro
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Nombre</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Screws, Wood Planks" {...field} />
+                    <Input placeholder="Ej: Tornillos, Tablas de madera" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -119,9 +119,9 @@ export function MaterialDialog({ material, onSave, children }: MaterialDialogPro
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormLabel>Descripción (Opcional)</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="e.g., 5cm stainless steel, Oak wood 2x4x8" {...field} />
+                    <Textarea placeholder="Ej: Acero inoxidable 5cm, Madera de roble 2x4x8" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -133,7 +133,7 @@ export function MaterialDialog({ material, onSave, children }: MaterialDialogPro
                 name="quantity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Quantity</FormLabel>
+                    <FormLabel>Cantidad</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="0" {...field} />
                     </FormControl>
@@ -146,7 +146,7 @@ export function MaterialDialog({ material, onSave, children }: MaterialDialogPro
                 name="lowStockThreshold"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Low Stock Threshold</FormLabel>
+                    <FormLabel>Umbral de Stock Bajo</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="0" {...field} />
                     </FormControl>
@@ -160,7 +160,7 @@ export function MaterialDialog({ material, onSave, children }: MaterialDialogPro
               name="purchaseDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Purchase Date</FormLabel>
+                  <FormLabel>Fecha de Compra</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -172,9 +172,9 @@ export function MaterialDialog({ material, onSave, children }: MaterialDialogPro
                           )}
                         >
                           {field.value ? (
-                            format(field.value, 'PPP')
+                            format(field.value, 'PPP', { locale: es })
                           ) : (
-                            <span>Pick a date</span>
+                            <span>Elige una fecha</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -182,6 +182,7 @@ export function MaterialDialog({ material, onSave, children }: MaterialDialogPro
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
+                        locale={es}
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
@@ -198,10 +199,10 @@ export function MaterialDialog({ material, onSave, children }: MaterialDialogPro
             />
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
-                Cancel
+                Cancelar
               </Button>
               <Button type="submit" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                {material ? 'Save Changes' : 'Add Material'}
+                {material ? 'Guardar Cambios' : 'Agregar Material'}
               </Button>
             </DialogFooter>
           </form>

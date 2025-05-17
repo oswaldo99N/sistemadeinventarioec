@@ -42,8 +42,8 @@ export default function InventoryPage() {
     };
     setMaterials((prev) => [newMaterial, ...prev]);
     toast({
-      title: "Material Added",
-      description: `${newMaterial.name} has been added to the inventory.`,
+      title: "Material Agregado",
+      description: `${newMaterial.name} ha sido agregado al inventario.`,
       variant: "default",
     });
   }, [toast]);
@@ -53,8 +53,8 @@ export default function InventoryPage() {
       prev.map((m) => (m.id === values.id ? { ...m, ...values, purchaseDate: values.purchaseDate } as Material : m))
     );
     toast({
-      title: "Material Updated",
-      description: `${values.name} has been updated.`,
+      title: "Material Actualizado",
+      description: `${values.name} ha sido actualizado.`,
       variant: "default",
     });
     setEditingMaterial(undefined);
@@ -65,8 +65,8 @@ export default function InventoryPage() {
     setMaterials((prev) => prev.filter((m) => m.id !== id));
     if (materialToDelete) {
       toast({
-        title: "Material Deleted",
-        description: `${materialToDelete.name} has been removed from the inventory.`,
+        title: "Material Eliminado",
+        description: `${materialToDelete.name} ha sido eliminado del inventario.`,
         variant: "destructive",
       });
     }
@@ -93,8 +93,8 @@ export default function InventoryPage() {
         <div className="space-y-6">
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle>Loading Inventory...</CardTitle>
-              <CardDescription>Please wait while we fetch your data.</CardDescription>
+              <CardTitle>Cargando Inventario...</CardTitle>
+              <CardDescription>Por favor, espera mientras cargamos tus datos.</CardDescription>
             </CardHeader>
           </Card>
         </div>
@@ -107,14 +107,14 @@ export default function InventoryPage() {
       <div className="space-y-6">
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="text-3xl">Inventory Overview</CardTitle>
-            <CardDescription>Manage your materials efficiently.</CardDescription>
+            <CardTitle className="text-3xl">Resumen del Inventario</CardTitle>
+            <CardDescription>Gestiona tus materiales eficientemente.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-3">
               <Card className="bg-secondary/50 shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Unique Items</CardTitle>
+                  <CardTitle className="text-sm font-medium">Total de Artículos Únicos</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{totalItems}</div>
@@ -122,7 +122,7 @@ export default function InventoryPage() {
               </Card>
               <Card className="bg-secondary/50 shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Quantity</CardTitle>
+                  <CardTitle className="text-sm font-medium">Cantidad Total</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{totalQuantity}</div>
@@ -130,7 +130,7 @@ export default function InventoryPage() {
               </Card>
               <Card className={lowStockCount > 0 ? "bg-destructive/20 shadow-sm" : "bg-secondary/50 shadow-sm"}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
+                  <CardTitle className="text-sm font-medium">Artículos con Stock Bajo</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{lowStockCount}</div>
@@ -147,11 +147,11 @@ export default function InventoryPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search materials..."
+              placeholder="Buscar materiales..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-full shadow-sm"
-              aria-label="Search materials"
+              aria-label="Buscar materiales"
             />
           </div>
           <MaterialDialog
@@ -159,7 +159,7 @@ export default function InventoryPage() {
           >
             <Button className="w-full sm:w-auto shadow-md bg-primary hover:bg-primary/90">
               <PlusCircle className="mr-2 h-5 w-5" />
-              Add New Material
+              Agregar Nuevo Material
             </Button>
           </MaterialDialog>
         </div>

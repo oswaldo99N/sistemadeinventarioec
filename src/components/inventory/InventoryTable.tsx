@@ -2,6 +2,7 @@
 
 import type { Material } from '@/types/inventory';
 import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { Edit3, Trash2, AlertTriangle, ChevronsUpDown, Plus, Minus, PackageSearch } from 'lucide-react';
 import type { Dispatch, SetStateAction } from 'react';
 import * as React from 'react';
@@ -101,12 +102,12 @@ export function InventoryTable({
      return (
       <Card className="mt-6 shadow-lg">
         <CardHeader>
-          <CardTitle className="text-center">No Materials Yet</CardTitle>
+          <CardTitle className="text-center">Aún no hay materiales</CardTitle>
         </CardHeader>
         <CardContent className="text-center text-muted-foreground">
           <PackageSearch className="mx-auto h-16 w-16 mb-4 text-primary opacity-50" />
-          <p>Your inventory is currently empty.</p>
-          <p>Click the "Add New Material" button to get started.</p>
+          <p>Tu inventario está actualmente vacío.</p>
+          <p>Haz clic en el botón "Agregar Nuevo Material" para comenzar.</p>
         </CardContent>
       </Card>
     );
@@ -117,8 +118,8 @@ export function InventoryTable({
       <Card className="mt-6 shadow-lg">
         <CardContent className="text-center text-muted-foreground py-10">
           <PackageSearch className="mx-auto h-16 w-16 mb-4 text-primary opacity-50" />
-          <p>No materials found for "{searchTerm}".</p>
-          <p>Try adjusting your search terms.</p>
+          <p>No se encontraron materiales para "{searchTerm}".</p>
+          <p>Intenta ajustar tus términos de búsqueda.</p>
         </CardContent>
       </Card>
     );
@@ -132,31 +133,31 @@ export function InventoryTable({
           <TableHeader>
             <TableRow>
               <TableHead className="cursor-pointer w-[25%]" onClick={() => requestSort('name')}>
-                <div className="flex items-center">Name {getSortIndicator('name')}</div>
+                <div className="flex items-center">Nombre {getSortIndicator('name')}</div>
               </TableHead>
-              <TableHead className="w-[30%] hidden md:table-cell">Description</TableHead>
+              <TableHead className="w-[30%] hidden md:table-cell">Descripción</TableHead>
               <TableHead className="cursor-pointer w-[10%]" onClick={() => requestSort('quantity')}>
-                <div className="flex items-center">Qty {getSortIndicator('quantity')}</div>
+                <div className="flex items-center">Cant. {getSortIndicator('quantity')}</div>
               </TableHead>
               <TableHead className="cursor-pointer w-[15%] hidden sm:table-cell" onClick={() => requestSort('purchaseDate')}>
-                 <div className="flex items-center">Purchased {getSortIndicator('purchaseDate')}</div>
+                 <div className="flex items-center">Comprado {getSortIndicator('purchaseDate')}</div>
               </TableHead>
-              <TableHead className="text-right w-[20%]">Actions</TableHead>
+              <TableHead className="text-right w-[20%]">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sortedMaterials.map((material) => (
-              <TableRow key={material.id} className={material.quantity <= material.lowStockThreshold ? 'bg-destructive/10 hover:bg-destructive/20' : ''}>
+              <TableRow key={material.id} className={material.quantity <= material.lowStockThreshold && material.lowStockThreshold > 0 ? 'bg-destructive/10 hover:bg-destructive/20' : ''}>
                 <TableCell className="font-medium">
                   <div className="flex items-center">
                   {material.name}
-                  {material.quantity <= material.lowStockThreshold && (
+                  {material.quantity <= material.lowStockThreshold && material.lowStockThreshold > 0 && (
                      <Tooltip>
                         <TooltipTrigger asChild>
                            <AlertTriangle className="ml-2 h-4 w-4 text-destructive" />
                         </TooltipTrigger>
                         <TooltipContent>
-                           <p>Low stock! Quantity: {material.quantity}, Threshold: {material.lowStockThreshold}</p>
+                           <p>{`¡Stock bajo! Cantidad: ${material.quantity}, Umbral: ${material.lowStockThreshold}`}</p>
                         </TooltipContent>
                      </Tooltip>
                   )}
@@ -174,13 +175,13 @@ export function InventoryTable({
                     </Button>
                   </div>
                 </TableCell>
-                <TableCell className="text-muted-foreground hidden sm:table-cell">{format(new Date(material.purchaseDate), 'PP')}</TableCell>
+                <TableCell className="text-muted-foreground hidden sm:table-cell">{format(new Date(material.purchaseDate), 'PP', { locale: es })}</TableCell>
                 <TableCell className="text-right space-x-1">
                   <MaterialDialog
                     material={material}
                     onSave={(values) => onEdit({ ...values, id: material.id } as Material)}
                   >
-                    <Button variant="ghost" size="icon" aria-label="Edit material">
+                    <Button variant="ghost" size="icon" aria-label="Editar material">
                       <Edit3 className="h-4 w-4" />
                     </Button>
                   </MaterialDialog>
@@ -188,7 +189,7 @@ export function InventoryTable({
                     onConfirm={() => onDelete(material.id)}
                     itemName={material.name}
                     trigger={
-                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/80" aria-label="Delete material">
+                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/80" aria-label="Eliminar material">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     }

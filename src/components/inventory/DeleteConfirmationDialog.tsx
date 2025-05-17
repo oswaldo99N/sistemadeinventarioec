@@ -20,25 +20,25 @@ interface DeleteConfirmationDialogProps {
   itemName?: string;
 }
 
-export function DeleteConfirmationDialog({ onConfirm, trigger, itemName = "this item" }: DeleteConfirmationDialogProps) {
+export function DeleteConfirmationDialog({ onConfirm, trigger, itemName = "este artículo" }: DeleteConfirmationDialogProps) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
       <AlertDialogContent className="shadow-xl">
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete {itemName}
-            {' '}from your inventory.
+            Esta acción no se puede deshacer. Esto eliminará permanentemente {itemName}
+            {' '}de tu inventario.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
           >
-            Yes, delete
+            Sí, eliminar
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

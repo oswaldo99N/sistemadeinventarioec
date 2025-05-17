@@ -20,9 +20,9 @@ export function LowStockNotice({ materials }: LowStockNoticeProps) {
   return (
     <Alert variant="destructive" className="mb-6 shadow-md">
       <AlertCircle className="h-4 w-4" />
-      <AlertTitle>Low Stock Alert!</AlertTitle>
+      <AlertTitle>¡Alerta de Stock Bajo!</AlertTitle>
       <AlertDescription>
-        The following item(s) are running low: {lowStockItems.map((item) => item.name).join(', ')}. Consider reordering soon.
+        Los siguientes artículos se están agotando: {lowStockItems.map((item) => item.name).join(', ')}. Considera hacer un nuevo pedido pronto.
       </AlertDescription>
     </Alert>
   );
