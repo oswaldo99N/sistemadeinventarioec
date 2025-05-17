@@ -1,0 +1,204 @@
+"use client";
+
+import type { Material } from '@/types/inventory';
+import { format } from 'date-fns';
+import { Edit3, Trash2, AlertTriangle, ChevronsUpDown, Plus, Minus, PackageSearch } from 'lucide-react';
+import type { Dispatch, SetStateAction } from 'react';
+import * as React from 'react';
+
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { MaterialDialog } from './MaterialDialog';
+import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+type SortKey = keyof Material | '';
+interface SortConfig {
+  key: SortKey;
+  direction: 'ascending' | 'descending';
+}
+
+interface InventoryTableProps {
+  materials: Material[];
+  onEdit: (material: Material) => void;
+  onDelete: (id: string) => void;
+  onQuantityChange: (id: string, newQuantity: number) => void;
+  searchTerm: string;
+  setEditingMaterial: Dispatch<SetStateAction<Material | undefined>>;
+}
+
+export function InventoryTable({
+  materials,
+  onEdit,
+  onDelete,
+  onQuantityChange,
+  searchTerm,
+  setEditingMaterial,
+}: InventoryTableProps) {
+  const [sortConfig, setSortConfig] = React.useState<SortConfig>({ key: 'name', direction: 'ascending' });
+
+  const filteredMaterials = React.useMemo(() => {
+    return materials.filter(
+      (material) =>
+        material.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        material.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [materials, searchTerm]);
+
+  const sortedMaterials = React.useMemo(() => {
+    let sortableItems = [...filteredMaterials];
+    if (sortConfig.key) {
+      sortableItems.sort((a, b) => {
+        const aValue = a[sortConfig.key as keyof Material];
+        const bValue = b[sortConfig.key as keyof Material];
+
+        if (aValue === undefined || bValue === undefined) return 0;
+
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+          return sortConfig.direction === 'ascending' ? aValue - bValue : bValue - aValue;
+        }
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortConfig.direction === 'ascending' 
+            ? aValue.localeCompare(bValue) 
+            : bValue.localeCompare(aValue);
+        }
+        // For dates (stored as strings)
+        if (sortConfig.key === 'purchaseDate') {
+            return sortConfig.direction === 'ascending'
+            ? new Date(aValue).getTime() - new Date(bValue).getTime()
+            : new Date(bValue).getTime() - new Date(aValue).getTime();
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [filteredMaterials, sortConfig]);
+
+  const requestSort = (key: SortKey) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIndicator = (key: SortKey) => {
+    if (sortConfig.key === key) {
+      return sortConfig.direction === 'ascending' ? '▲' : '▼';
+    }
+    return <ChevronsUpDown className="h-4 w-4 opacity-50" />;
+  };
+
+  if (materials.length === 0 && !searchTerm) {
+     return (
+      <Card className="mt-6 shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-center">No Materials Yet</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center text-muted-foreground">
+          <PackageSearch className="mx-auto h-16 w-16 mb-4 text-primary opacity-50" />
+          <p>Your inventory is currently empty.</p>
+          <p>Click the "Add New Material" button to get started.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  if (sortedMaterials.length === 0 && searchTerm) {
+    return (
+      <Card className="mt-6 shadow-lg">
+        <CardContent className="text-center text-muted-foreground py-10">
+          <PackageSearch className="mx-auto h-16 w-16 mb-4 text-primary opacity-50" />
+          <p>No materials found for "{searchTerm}".</p>
+          <p>Try adjusting your search terms.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+
+  return (
+    <TooltipProvider>
+      <div className="rounded-lg border shadow-md overflow-hidden bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="cursor-pointer w-[25%]" onClick={() => requestSort('name')}>
+                <div className="flex items-center">Name {getSortIndicator('name')}</div>
+              </TableHead>
+              <TableHead className="w-[30%] hidden md:table-cell">Description</TableHead>
+              <TableHead className="cursor-pointer w-[10%]" onClick={() => requestSort('quantity')}>
+                <div className="flex items-center">Qty {getSortIndicator('quantity')}</div>
+              </TableHead>
+              <TableHead className="cursor-pointer w-[15%] hidden sm:table-cell" onClick={() => requestSort('purchaseDate')}>
+                 <div className="flex items-center">Purchased {getSortIndicator('purchaseDate')}</div>
+              </TableHead>
+              <TableHead className="text-right w-[20%]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedMaterials.map((material) => (
+              <TableRow key={material.id} className={material.quantity <= material.lowStockThreshold ? 'bg-destructive/10 hover:bg-destructive/20' : ''}>
+                <TableCell className="font-medium">
+                  <div className="flex items-center">
+                  {material.name}
+                  {material.quantity <= material.lowStockThreshold && (
+                     <Tooltip>
+                        <TooltipTrigger asChild>
+                           <AlertTriangle className="ml-2 h-4 w-4 text-destructive" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                           <p>Low stock! Quantity: {material.quantity}, Threshold: {material.lowStockThreshold}</p>
+                        </TooltipContent>
+                     </Tooltip>
+                  )}
+                  </div>
+                </TableCell>
+                <TableCell className="text-muted-foreground hidden md:table-cell">{material.description || '-'}</TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-1">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onQuantityChange(material.id, Math.max(0, material.quantity - 1))}>
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span>{material.quantity}</span>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onQuantityChange(material.id, material.quantity + 1)}>
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+                <TableCell className="text-muted-foreground hidden sm:table-cell">{format(new Date(material.purchaseDate), 'PP')}</TableCell>
+                <TableCell className="text-right space-x-1">
+                  <MaterialDialog
+                    material={material}
+                    onSave={(values) => onEdit({ ...values, id: material.id } as Material)}
+                  >
+                    <Button variant="ghost" size="icon" aria-label="Edit material">
+                      <Edit3 className="h-4 w-4" />
+                    </Button>
+                  </MaterialDialog>
+                  <DeleteConfirmationDialog
+                    onConfirm={() => onDelete(material.id)}
+                    itemName={material.name}
+                    trigger={
+                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/80" aria-label="Delete material">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    }
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </TooltipProvider>
+  );
+}
