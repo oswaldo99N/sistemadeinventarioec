@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useEffect, useState, useCallback } from 'react';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, Download } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,8 @@ import type { Material, MaterialFormValues } from '@/types/inventory';
 import { loadState, saveState } from '@/lib/localStorage';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 
 const LOCAL_STORAGE_KEY = 'stockwise_materials';
@@ -81,13 +84,75 @@ export default function InventoryPage() {
      // No toast for quick adjustments to avoid spamming notifications
   }, []);
 
+  const handleDownloadInventory = useCallback(() => {
+    if (materials.length === 0) {
+      toast({
+        title: "Inventario Vacío",
+        description: "No hay materiales para descargar.",
+        variant: "default",
+      });
+      return;
+    }
+
+    const headers = [
+      "ID",
+      "Nombre",
+      "Descripción",
+      "Cantidad",
+      "Fecha de Compra",
+      "Umbral de Stock Bajo"
+    ];
+
+    const escapeCsvCell = (cellData: string | number) => {
+      const stringData = String(cellData);
+      // Si contiene coma, comillas dobles o salto de línea, encerrar entre comillas dobles
+      // y escapar comillas dobles existentes duplicándolas.
+      if (stringData.includes(',') || stringData.includes('"') || stringData.includes('\n')) {
+        return `"${stringData.replace(/"/g, '""')}"`;
+      }
+      return stringData;
+    };
+    
+    const csvRows = [
+      headers.join(','),
+      ...materials.map(material => 
+        [
+          escapeCsvCell(material.id),
+          escapeCsvCell(material.name),
+          escapeCsvCell(material.description),
+          escapeCsvCell(material.quantity),
+          escapeCsvCell(format(new Date(material.purchaseDate), 'yyyy-MM-dd', { locale: es })),
+          escapeCsvCell(material.lowStockThreshold)
+        ].join(',')
+      )
+    ];
+    
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `inventario_stockwise_${format(new Date(), 'yyyyMMdd')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Descarga Iniciada",
+      description: "El archivo del inventario se está descargando.",
+      variant: "default",
+    });
+
+  }, [materials, toast]);
+
 
   const totalItems = materials.length;
   const totalQuantity = materials.reduce((sum, item) => sum + item.quantity, 0);
   const lowStockCount = materials.filter(m => m.quantity <= m.lowStockThreshold && m.lowStockThreshold > 0).length;
 
   if (!isMounted) {
-    // Optional: render a loading skeleton or spinner
     return (
       <AppLayout>
         <div className="space-y-6">
@@ -154,14 +219,25 @@ export default function InventoryPage() {
               aria-label="Buscar materiales"
             />
           </div>
-          <MaterialDialog
-            onSave={handleAddMaterial}
-          >
-            <Button className="w-full sm:w-auto shadow-md bg-primary hover:bg-primary/90">
-              <PlusCircle className="mr-2 h-5 w-5" />
-              Agregar Nuevo Material
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <MaterialDialog
+              onSave={handleAddMaterial}
+            >
+              <Button className="w-full sm:w-auto shadow-md bg-primary hover:bg-primary/90">
+                <PlusCircle className="mr-2 h-5 w-5" />
+                Agregar Nuevo Material
+              </Button>
+            </MaterialDialog>
+            <Button 
+              className="w-full sm:w-auto shadow-md"
+              variant="outline"
+              onClick={handleDownloadInventory}
+              disabled={materials.length === 0}
+            >
+              <Download className="mr-2 h-5 w-5" />
+              Descargar Inventario
             </Button>
-          </MaterialDialog>
+          </div>
         </div>
 
         <InventoryTable
@@ -175,18 +251,14 @@ export default function InventoryPage() {
           onDelete={handleDeleteMaterial}
           onQuantityChange={handleQuantityChange}
           searchTerm={searchTerm}
-          setEditingMaterial={setEditingMaterial} // This might not be needed if MaterialDialog is self-contained within InventoryTable's map
+          setEditingMaterial={setEditingMaterial} 
         />
         
-        {/* This instance of MaterialDialog is for editing, triggered from InventoryTable */}
-        {/* It is kept here in case a separate "Edit" button not part of the table row is needed in the future */}
-        {/* Currently, InventoryTable's MaterialDialog handles edits directly */}
          {editingMaterial && (
            <MaterialDialog
              material={editingMaterial}
              onSave={handleEditMaterial}
            >
-             {/* This is a hidden trigger, dialog is controlled by editingMaterial state */}
              <></> 
            </MaterialDialog>
          )}
@@ -194,3 +266,4 @@ export default function InventoryPage() {
     </AppLayout>
   );
 }
+
